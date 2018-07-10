@@ -84,7 +84,7 @@ class Node:
                 break
             
 
-class Trie:
+class Tree:
     def __init__(self):
         self.root = Node(None)
 
@@ -129,7 +129,7 @@ class Trie:
                 return nodes
     
 if __name__ == "__main__":
-    t = Trie()
+    t = Tree()
     ts1 = ['1','2','3','4']
     ts2 = ['2','3','4','5']
     ts3 = ['1','5']
