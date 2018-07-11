@@ -23,7 +23,6 @@ class Node:
             string += child.val + ' '
         return string
             
-
     def insert(self, item_list):
         # makes sure that there is at least one item in list
         if not item_list:
@@ -84,21 +83,7 @@ class Node:
                 new_node._insert(item_list,new_node)
         else:
             return "Finished"
-
-    # NOT DONE
-    # def find(self, item):
-       # node = root
-       # if not node.children:
-       #     return False
-       # for child in node.children:
-        #    char_not_found = True
-        #    if child.val == item:
-        #        char_not_found = False
-        #       break
-		#
 		
-            
-
 class Tree:
     def __init__(self):
         self.root = Node(None)
@@ -114,23 +99,22 @@ class Tree:
     def traverse(self):
         string = ''
         for child in self.root.children:
-            string += child.val + '|'
-            if not child.children:
-                continue
-            else:
-                string += self._traverse(child) + ' '
-        return string
-    
-    def _traverse(self, node):
-        string = ''
-        for child in node.children:
-            string += child.val + ' '
+            string += child.val + ':' + str(child.count) + ' '
             if not child.children:
                 continue
             else:
                 string += self._traverse(child)
         return string
-
+    
+    def _traverse(self, node):
+        string = ''
+        for child in node.children:
+            string += child.val + ':' + str(child.count) + ' '
+            if not child.children:
+                continue
+            else:
+                string += self._traverse(child)
+        return string
     
 if __name__ == "__main__":
     t = Tree()
