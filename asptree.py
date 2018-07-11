@@ -34,7 +34,7 @@ class Node:
         new_node = Node(val)
         
         # if root node has no children then add it to the root node's kids
-        # this if/else statement only handles the root's children
+        # this if/else statement only handles the tree root's children
         if not root_node.children:
             root_node.children.append(new_node)
             new_node.seen_again()
@@ -42,6 +42,7 @@ class Node:
             child_not_found = True
             for child in root_node.children:
                 if child.val == new_node.val:
+                    new_node = child
                     child.seen_again()
                     child_not_found = False
                     break
@@ -57,15 +58,27 @@ class Node:
         else:
             return "Finished"
                 
-
+    # handles all the children
     def _insert(self,item_list, prev_node):
         if not item_list:
             return "Finished/Empty List"
 
         val = item_list[0]
         new_node = Node(val)
-        prev_node.children.append(new_node)
-        new_node.seen_again()
+        if not prev_node.children:
+            prev_node.children.append(new_node)
+            new_node.seen_again()
+        else:
+            child_not_found = True
+            for child in prev_node.children:
+                if child.val == new_node.val:
+                    new_node = child
+                    child.seen_again()
+                    child_not_found = False
+                    break
+            if child_not_found:
+                prev_node.children.append(new_node)
+                new_node.seen_again()
         if len(item_list) > 1:
                 item_list.pop(0)
                 new_node._insert(item_list,new_node)
@@ -73,15 +86,17 @@ class Node:
             return "Finished"
 
     # NOT DONE
-    def find(self, item):
-        node = root
-        if not node.children:
-            return False
-        for child in node.children:
-            char_not_found = True
-            if child.val == item:
-                char_not_found = False
-                break
+    # def find(self, item):
+       # node = root
+       # if not node.children:
+       #     return False
+       # for child in node.children:
+        #    char_not_found = True
+        #    if child.val == item:
+        #        char_not_found = False
+        #       break
+		#
+		
             
 
 class Tree:
@@ -92,51 +107,42 @@ class Tree:
         self.root.insert(item_list)
 
     def __str__(self):
-        string = self.all()
+        string = self.traverse()
         return str(string)
 
-    # INCOMPLETE, JUST PRINTS EVERYTHING
-    def all(self):
+    # does a dfs on the tree and outputs it. 
+    def traverse(self):
         string = ''
         for child in self.root.children:
             string += child.val + '|'
             if not child.children:
                 continue
             else:
-                string += self._all(child) + ' '
+                string += self._traverse(child) + ' '
         return string
     
-    def _all(self, node):
+    def _traverse(self, node):
         string = ''
         for child in node.children:
             string += child.val + ' '
             if not child.children:
                 continue
             else:
-                string += self._all(child)
+                string += self._traverse(child)
         return string
 
-    # not my code. doesn't work here.
-    def bfs(self):
-        nodes = []
-        stack = [self.root.children]
-        while stack:
-            cur_node = stack[0]
-            stack = stack[1:]
-            nodes.append(cur_node[0].val)
-            for child in cur_node:
-                stack.append(child.val)
-                return nodes
     
 if __name__ == "__main__":
     t = Tree()
     ts1 = ['1','2','3','4']
     ts2 = ['2','3','4','5']
-    ts3 = ['1','5']
+    ts3 = ['2','1','7']
+    ts4 = ['2','1','4']
     
     t.insert(ts1)
     t.insert(ts2)
     t.insert(ts3)
+    t.insert(ts4)
     print(t)
 
 
