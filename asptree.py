@@ -13,6 +13,9 @@ class Node:
     def cnt(self):
         return self.count
 
+    def __iter__(self):
+        return iter(self.children)
+
     def seen_again(self):
         self.count += 1
         return self.count
@@ -85,6 +88,7 @@ class Node:
 class Tree:
     def __init__(self):
         self.root = Node(None)
+        #self.sFD = self.sfd()
 
     def insert(self, item_list):
         self.root.insert(item_list)
@@ -93,21 +97,47 @@ class Tree:
         string = self.traverse()
         return str(string)
 
-    # NOT DONE
-    def compress(self):
+    # Creates a dict "list" in frequency-descending order (SFD)
+    def sfd(self):
+        l = self.traverse()
+        flat = self.flatten()
+        # flat = sorted(flat, key = lambda x: x.val)
+        temp = self.merge(flat)
+        temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
+        return temp
+
+    def merge(self, lst):
+        temp = {}
+        for i in lst:
+            if not i.val in temp:
+                temp[i.val] = i.count
+            else:
+                temp[i.val] = temp[i.val] + i.count
+        return temp
+        
+    # gives a flattened dfs list 
+    def flatten(self):
         lst = []
         for child in self.root.children:
-            lst.append += child.val
-        return
+            lst.append(child)
+            if child.children:
+                lst += self._flatten(child)
+        return lst
 
-    # does a dfs iteratively on the tree and returns it. 
+    def _flatten(self, node):
+        lst = []
+        for child in node.children:
+            lst.append(child)
+            if child.children:
+                lst += self._flatten(child)
+        return lst
+
+    # does a dfs iteratively on the tree and returns it
     def traverse(self):
         lst = []
         for child in self.root.children:
             lst.append(child)
-            if not child.children:
-                continue
-            else:
+            if child.children:
                 lst.append(self._traverse(child))
         return lst
     
@@ -115,9 +145,7 @@ class Tree:
         lst = []
         for child in node.children:
             lst.append(child)
-            if not child.children:
-                continue
-            else:
+            if child.children: 
                 lst.append(self._traverse(child))
         return lst
 
@@ -137,6 +165,7 @@ if __name__ == "__main__":
     t.insert(ts4)
     t.insert(ts5)
     t.insert(ts6)
-    print(t)
+    #print(t)
+    print(t.sfd())
 
     
