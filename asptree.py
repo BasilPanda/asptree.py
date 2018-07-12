@@ -17,11 +17,8 @@ class Node:
         self.count += 1
         return self.count
 
-    def __str__(self):
-        string = ''
-        for child in self.children:
-            string += child.val + ' '
-        return string
+    def __repr__(self):
+        return '{}:{}'.format(self.val, self.count)
             
     def insert(self, item_list):
         # makes sure that there is at least one item in list
@@ -78,12 +75,13 @@ class Node:
             if child_not_found:
                 prev_node.children.append(new_node)
                 new_node.seen_again()
+                
         if len(item_list) > 1:
                 item_list.pop(0)
                 new_node._insert(item_list,new_node)
         else:
             return "Finished"
-		
+
 class Tree:
     def __init__(self):
         self.root = Node(None)
@@ -95,39 +93,50 @@ class Tree:
         string = self.traverse()
         return str(string)
 
-    # does a dfs on the tree and outputs it. 
-    def traverse(self):
-        string = ''
+    # NOT DONE
+    def compress(self):
+        lst = []
         for child in self.root.children:
-            string += child.val + ':' + str(child.count) + ' '
+            lst.append += child.val
+        return
+
+    # does a dfs iteratively on the tree and returns it. 
+    def traverse(self):
+        lst = []
+        for child in self.root.children:
+            lst.append(child)
             if not child.children:
                 continue
             else:
-                string += self._traverse(child)
-        return string
+                lst.append(self._traverse(child))
+        return lst
     
     def _traverse(self, node):
-        string = ''
+        lst = []
         for child in node.children:
-            string += child.val + ':' + str(child.count) + ' '
+            lst.append(child)
             if not child.children:
                 continue
             else:
-                string += self._traverse(child)
-        return string
+                lst.append(self._traverse(child))
+        return lst
+
     
 if __name__ == "__main__":
     t = Tree()
-    ts1 = ['1','2','3','4']
-    ts2 = ['2','3','4','5']
-    ts3 = ['2','1','7']
-    ts4 = ['2','1','4']
+    ts1 = ['s1','s2','s3','s4','s7','s8']
+    ts2 = ['s1','s5','s6']
+    ts3 = ['s2','s5','s6','s7','s8']
+    ts4 = ['s1','s2','s4','s7']
+    ts5 = ['s1','s2','s4','s5']
+    ts6 = ['s1','s2','s3','s4','s7']
     
     t.insert(ts1)
     t.insert(ts2)
     t.insert(ts3)
     t.insert(ts4)
+    t.insert(ts5)
+    t.insert(ts6)
     print(t)
-
 
     
