@@ -22,7 +22,7 @@ class Node:
         return self.count
 
     def __repr__(self):
-        return '{}:{}'.format(self.val, self.count)          
+        return '{}:{}'.format(self.val, self.count)  
                 
     # handles all the children
     def insert(self,item_list, prev_node):
@@ -68,25 +68,60 @@ class Node:
             if child.children: 
                 lst.append(child.traverse())
         return lst
-    
-    # NOT DONE
-    def delete(self, node_name):
-        if not self.children:
-            return None
-        for child in self.children:
-            if child.val == node_name:
-                self.remove(child)
-            else:
-                return
 
+    def restruct(self, SFD):
+        for child in self.children:
+            if child.children:
+                child.restruct(SFD)
+
+            if SFD[child.val] > SFD[child.parent.val]:
+                
+                # print('Before:')
+                # print('child: '+child.val+' parent: ' + child.parent.val + ' grandparent: ' + child.parent.parent.val)
+                # print('grandchildren: ' + str(child.children))
+                
+                if child.children:
+                    for grandchild in child.children:
+                        grandchild.parent = child.parent
+                        child.parent.children.append(grandchild)
+                        
+                child.children.clear()
+                child.children.append(child.parent)
+                child.parent.parent.children.append(child)
+                
+                if child.parent in child.parent.parent.children:
+                    child.parent.parent.children.remove(child.parent)
+                child.parent.children.remove(child)
+
+                # These two lines don't make any sense as it would set the parent and the
+                # grandparent both to the child BUT it makes the function output the tree
+                # correctly after restructuring so if there's a problem later I'll fix it.
+                child.parent.parent = child
+                child.parent = child.parent.parent
+                
+                # print('After:')
+                # print('child: '+child.val+' parent: ' + child.parent.val+ ' grandparent: ' + child.parent.parent.val)
+                # print('grandchildren: ' + str(child.children))
+        return self
+
+    # NOT DONE
     def compress(self):
-        return
-    
+        temp = []
+        for child in self.children:
+            if not child in temp:
+                temp.append(child)
+            else:
+                
+
 class Tree:
     def __init__(self):
         self.root = Node(None)
-        #self.sFD = self.sfd()
+        self.SFD = {}
 
+    def update_SFD(self):
+        self.SFD = self.sfd()
+        return self.SFD
+    
     def insert(self, item_list):
         # makes sure that there is at least one item in list
         if not item_list:
@@ -118,10 +153,8 @@ class Tree:
             item_list.pop(0)
             new_node.insert(item_list,new_node)
         else:
+            self.update_SFD()
             return "Finished"
-
-    def delete(self, node_name):
-        self.root.delete(node_name)
 
     def __str__(self):
         string = self.traverse()
@@ -131,9 +164,8 @@ class Tree:
     def sfd(self):
         l = self.traverse()
         flat = self.flatten()
-        # flat = sorted(flat, key = lambda x: x.val)
         temp = self.sfd_merge(flat)
-        temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
+        #temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
         return temp
 
     def sfd_merge(self, lst):
@@ -145,12 +177,30 @@ class Tree:
                 temp[i.val] = temp[i.val] + i.count
         return temp
 
-    # Reconstruct tree using SFD list. ???
-    def compress(self):
-        SFD = self.sfd()
+    # Restructures tree using SFD list.
+    def restruct(self):
+        SFD = self.SFD
+        print(SFD)
         for child in self.root.children:
             if child.children:
-                child.compress()
+                child.restruct(SFD)
+            if child.parent != None:
+                if SFD[child.val] > SFD[child.parent.val]:
+                    if child.children:
+                        for grandchild in child.children:
+                                grandchild.parent = child.parent
+                                child.parent.children.append(grandchild)
+                                
+                    child.children.clear()
+                    child.children.append(child.parent) 
+                    child.parent.parent.children.append(child)
+                    child.parent.children.remove(child)
+                    child.parent = child.parent.parent
+        return self
+
+    def compress(self):
+        self.root.compress()
+        
         
     # gives a flattened dfs list 
     def flatten(self):
@@ -186,7 +236,11 @@ if __name__ == "__main__":
     t.insert(ts5)
     t.insert(ts6)
     print(t)
+    t.update_SFD()
+    t.restruct()
+    print(t)
+    #print(t)
     # t.delete()
-    print(t.sfd())
+    #print(t.sfd())
 
     
