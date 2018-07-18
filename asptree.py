@@ -75,35 +75,35 @@ class Node:
         for child in self.children:
             if child.children:
                 child.restruct(SFD)
+            if child.parent != None:
+                if SFD[child.val] > SFD[child.parent.val]:
+                    
+                    # print('Before:')
+                    # print('child: '+child.val+' parent: ' + child.parent.val + ' grandparent: ' + child.parent.parent.val)
+                    # print('grandchildren: ' + str(child.children))
+                    
+                    if child.children:
+                        for grandchild in child.children:
+                            grandchild.parent = child.parent
+                            child.parent.children.append(grandchild)
+                            
+                    child.children.clear()
+                    child.children.append(child.parent)
+                    child.parent.parent.children.append(child)
+                    
+                    if child.parent in child.parent.parent.children:
+                        child.parent.parent.children.remove(child.parent)
+                    child.parent.children.remove(child)
 
-            if SFD[child.val] > SFD[child.parent.val]:
-                
-                # print('Before:')
-                # print('child: '+child.val+' parent: ' + child.parent.val + ' grandparent: ' + child.parent.parent.val)
-                # print('grandchildren: ' + str(child.children))
-                
-                if child.children:
-                    for grandchild in child.children:
-                        grandchild.parent = child.parent
-                        child.parent.children.append(grandchild)
-                        
-                child.children.clear()
-                child.children.append(child.parent)
-                child.parent.parent.children.append(child)
-                
-                if child.parent in child.parent.parent.children:
-                    child.parent.parent.children.remove(child.parent)
-                child.parent.children.remove(child)
-
-                # These two lines don't make any sense as it would set the parent and the
-                # grandparent both to the child BUT it makes the function output the tree
-                # correctly after restructuring so if there's a problem later I'll fix it.
-                child.parent.new_p(child)
-                child.new_p(child.parent.parent)
-                
-                # print('After:')
-                # print('child: '+child.val+' parent: ' + child.parent.val+ ' grandparent: ' + child.parent.parent.val)
-                # print('grandchildren: ' + str(child.children))
+                    # These two lines don't make any sense as it would set the parent and the
+                    # grandparent both to the child BUT it makes the function output the tree
+                    # correctly after restructuring so if there's a problem later I'll fix it.
+                    child.parent.new_p(child)
+                    child.new_p(child.parent.parent)
+                    
+                    # print('After:')
+                    # print('child: '+child.val+' parent: ' + child.parent.val+ ' grandparent: ' + child.parent.parent.val)
+                    # print('grandchildren: ' + str(child.children))
         return self
 
     def compress(self):
@@ -120,6 +120,7 @@ class Node:
                 child.compress()        
                 
 class Tree:
+    # root is always null
     def __init__(self):
         self.root = Node(None)
         self.SFD = {}
@@ -129,7 +130,6 @@ class Tree:
         # return self.SFD
 
     def insert(self, item_list):
-        # makes sure that there is at least one item in list
         if not item_list:
             return "Finished/Empty List"
         
@@ -162,15 +162,15 @@ class Tree:
 
 
     def __str__(self):
-        string = self.traverse()
-        return str(string)
+        return str(self.traverse())
 
     # Creates a dict "list" in frequency-descending order (SFD)
     def sfd(self):
-        l = self.traverse()
         flat = self.flatten()
         temp = self.sfd_merge(flat)
-        #temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
+
+# Uncomment the line below for it to be a list sorted in frequency-descending order. Will break other functions though.
+        # temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
         return temp
 
     def sfd_merge(self, lst):
@@ -184,45 +184,19 @@ class Tree:
 
     # Restructures tree using SFD list.
     def restruct(self):
-        SFD = self.SFD
-        #print(SFD)
-        for child in self.root.children:
-            if child.children:
-                child.restruct(SFD)
-            if child.parent != None:
-                if SFD[child.val] > SFD[child.parent.val]:
-                    if child.children:
-                        for grandchild in child.children:
-                                grandchild.parent = child.parent
-                                child.parent.children.append(grandchild)
-                                
-                    child.children.clear()
-                    child.children.append(child.parent) 
-                    child.parent.parent.children.append(child)
-                    child.parent.children.remove(child)
-                    child.parent = child.parent.parent
-        return self
+        return self.root.restruct(self.SFD)
 
+    # After restructuring, all similar nodes should have the same parent. This allows for easy compression
     def compress(self):
-        self.root.compress()
+        return self.root.compress()
         
-    # gives a flattened dfs list 
+    # Gives a flattened dfs list 
     def flatten(self):
-        lst = []
-        for child in self.root.children:
-            lst.append(child)
-            if child.children:
-                lst += child.flatten()
-        return lst
+        return self.root.flatten()
 
-    # does a dfs iteratively on the tree and returns it
+    # Does a dfs iteratively on the tree and returns it
     def traverse(self):
-        lst = []
-        for child in self.root.children:
-            lst.append(child)
-            if child.children:
-                lst.append(child.traverse())
-        return lst
+        return self.root.traverse()
     
 if __name__ == "__main__":
     t = Tree()
