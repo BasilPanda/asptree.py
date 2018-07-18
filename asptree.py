@@ -14,6 +14,10 @@ class Node:
     def cnt(self):
         return self.count
 
+    def new_p(self,node):
+        self.parent = node
+        return self.parent
+
     def __iter__(self):
         return iter(self.children)
 
@@ -50,8 +54,6 @@ class Node:
         if len(item_list) > 1:
                 item_list.pop(0)
                 new_node.insert(item_list,new_node)
-        else:
-            return "Finished"
 
     def flatten(self):
         lst = []
@@ -96,23 +98,27 @@ class Node:
                 # These two lines don't make any sense as it would set the parent and the
                 # grandparent both to the child BUT it makes the function output the tree
                 # correctly after restructuring so if there's a problem later I'll fix it.
-                child.parent.parent = child
-                child.parent = child.parent.parent
+                child.parent.new_p(child)
+                child.new_p(child.parent.parent)
                 
                 # print('After:')
                 # print('child: '+child.val+' parent: ' + child.parent.val+ ' grandparent: ' + child.parent.parent.val)
                 # print('grandchildren: ' + str(child.children))
         return self
 
-    # NOT DONE
     def compress(self):
-        temp = []
+        temp = {}
         for child in self.children:
-            if not child in temp:
-                temp.append(child)
+            if child.val not in temp:
+                temp[child.val] = child
             else:
+                dup_node = temp[child.val]
+                child.count += dup_node.count
+                child.children += (dup_node.children)
+                self.children.remove(dup_node)
+            if child.children:
+                child.compress()        
                 
-
 class Tree:
     def __init__(self):
         self.root = Node(None)
@@ -120,8 +126,8 @@ class Tree:
 
     def update_SFD(self):
         self.SFD = self.sfd()
-        return self.SFD
-    
+        # return self.SFD
+
     def insert(self, item_list):
         # makes sure that there is at least one item in list
         if not item_list:
@@ -152,9 +158,8 @@ class Tree:
         if len(item_list) > 1:
             item_list.pop(0)
             new_node.insert(item_list,new_node)
-        else:
-            self.update_SFD()
-            return "Finished"
+        self.update_SFD()
+
 
     def __str__(self):
         string = self.traverse()
@@ -180,7 +185,7 @@ class Tree:
     # Restructures tree using SFD list.
     def restruct(self):
         SFD = self.SFD
-        print(SFD)
+        #print(SFD)
         for child in self.root.children:
             if child.children:
                 child.restruct(SFD)
@@ -200,7 +205,6 @@ class Tree:
 
     def compress(self):
         self.root.compress()
-        
         
     # gives a flattened dfs list 
     def flatten(self):
@@ -235,12 +239,10 @@ if __name__ == "__main__":
     t.insert(ts4)
     t.insert(ts5)
     t.insert(ts6)
-    print(t)
-    t.update_SFD()
-    t.restruct()
-    print(t)
-    #print(t)
-    # t.delete()
-    #print(t.sfd())
-
     
+    print("\nAfter inserting into tree:")
+    print(t)
+    t.restruct()
+    t.compress()
+    print("\nAfter restructuring-compression:")
+    print(t)
