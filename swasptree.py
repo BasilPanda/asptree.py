@@ -22,6 +22,8 @@ class Node:
         return iter(self.children)
 
     def seen_again(self, batch_counter):
+        if batch_counter >= 3:
+            batch_counter = 2
         i = batch_counter % 3
         num = self.count[i] if i < len(self.count) else None
         num += 1
@@ -121,7 +123,6 @@ class Node:
                 dup_node = temp[child.val]
                 for i in range(len(child.count)):
                     num = child.count[i] if i < len(child.count) else None
-                    
                     dup_num = dup_node.count[i] if i < len(dup_node.count) else None
                     child.count[i] = num + dup_num
                 child.children += (dup_node.children)
@@ -129,9 +130,14 @@ class Node:
             if child.children:
                 child.compress()
 
-    # NOT DONE
     def update(self):
-        return
+        for child in self.children:
+            child.update()
+            child.count.pop(0)
+            child.count.append(0)
+            i = 0
+            if child.count[i] == 0 and child.count[i+1] == 0:
+                self.children.remove(child)
                 
 class Tree:
     # root is always null
@@ -210,7 +216,13 @@ class Tree:
 
     def update(self):
         return self.root.update()
-        
+
+    def phase2(self):
+        self.restruct()
+        self.compress()
+        self.update()
+        return self
+    
     # Gives a flattened dfs list 
     def flatten(self):
         return self.root.flatten()
@@ -227,6 +239,9 @@ if __name__ == "__main__":
     ts4 = ['s1','s2','s4','s7']
     ts5 = ['s1','s2','s4','s5']
     ts6 = ['s1','s2','s3','s4','s7']
+
+    ts7 = ['s1','s2','s7']
+    ts8 = ['s1','s3']
     
     t.insert(ts1)
     t.insert(ts2)
@@ -235,9 +250,15 @@ if __name__ == "__main__":
     t.insert(ts5)
     t.insert(ts6)
     
-    print("\nAfter inserting into tree:")
+    
+    print("\nAfter inserting batches 1-3 into tree:")
     print(t)
-    t.restruct()
-    t.compress()
-    print("\nAfter restructuring-compression:")
+    t.phase2()
+    print("\nAfter restructuring-compression and update:")
+    print(t)
+    
+    t.insert(ts7)
+    t.insert(ts8)
+
+    print("\nAfter inserting batch 4:")
     print(t)
