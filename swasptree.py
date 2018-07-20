@@ -102,12 +102,10 @@ class Node:
                     if child.parent in child.parent.parent.children:
                         child.parent.parent.children.remove(child.parent)
                     child.parent.children.remove(child)
-
-                    # These two lines don't make any sense as it would set the parent and the
-                    # grandparent both to the child BUT it makes the function output the tree
-                    # correctly after restructuring so if there's a problem later I'll fix it.
+                
+                    temp_p = child.parent.parent
                     child.parent.new_p(child)
-                    child.new_p(child.parent.parent)
+                    child.new_p(temp_p)
                     
                     # print('After:')
                     # print('child: '+child.val+' parent: ' + child.parent.val+ ' grandparent: ' + child.parent.parent.val)
@@ -218,6 +216,7 @@ class Tree:
         return self.root.update()
 
     def phase2(self):
+        self.restruct()
         self.restruct()
         self.compress()
         self.update()
