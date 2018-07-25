@@ -115,7 +115,41 @@ class Node:
                 child.children += (dup_node.children)
                 self.children.remove(dup_node)
             if child.children:
-                child.compress()        
+                child.compress()
+
+    # This is inefficient for the large scale data mining but it works and took me forever to figure out
+    def mine(self, SFD, min_sup, min_all_conf):
+        lst = []
+        for key in SFD:
+            if SFD[key] >= min_sup:
+                temp = self.find(key)
+                if temp:
+                    lst.append(temp)            
+        return lst
+
+    def find(self, key):
+        temp = {}
+        for child in self.children:
+            if key not in temp:
+                temp[key] = []
+            if child.children:
+                temp2 = (child.find(key))
+                for key in (temp.keys() | temp2.keys()):
+                    if key in temp2:
+                        temp[key] += (temp2[key])            
+            if child.val == key and child.parent != None:
+                lst = [child.check_p() + ":" + str(child.count)]
+                temp[key].append(lst)
+            if temp[key] == []:
+                del temp[key]
+        return temp
+                
+    def check_p(self):
+        string = ''
+        if self.parent != None:
+            string = self.parent.val
+            string = self.parent.check_p() + string
+        return string
                 
 class Tree:
     # root is always null
@@ -200,6 +234,9 @@ class Tree:
     # Does a dfs iteratively on the tree and returns it
     def traverse(self):
         return self.root.traverse()
+
+    def mine(self, min_sup, min_all_conf):
+        return self.root.mine(self.SFD, min_sup, min_all_conf)
     
 if __name__ == "__main__":
     t = Tree()
@@ -217,8 +254,10 @@ if __name__ == "__main__":
     t.insert(ts5)
     t.insert(ts6)
     print(t.sfd())
-    print("\nAfter inserting into tree:")
-    print(t)
+    # print("\nAfter inserting into tree:")
+    # print(t)
     t.phase2()
     print("\nAfter restructuring-compression:")
     print(t)
+    print("\nConditional Pattern Base:")
+    print(t.mine(3,0))
