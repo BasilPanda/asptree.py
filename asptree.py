@@ -31,10 +31,9 @@ class Node:
     def __repr__(self):
         return '{}:{}'.format(self.val, self.count)  
                 
-    # handles all the children
     def insert(self,item_list, prev_node):
         if not item_list:
-            return "Finished/Empty List"
+            return None
 
         val = item_list[0]
         new_node = Node(val)
@@ -81,10 +80,6 @@ class Node:
             if child.parent != None:
                 if SFD[child.val] > SFD[child.parent.val]:
                     
-                    #print('Before:')
-                    #print('child: '+child.val+' parent: ' + child.parent.val + ' grandparent: ' + child.parent.parent.val)
-                    #print('grandchildren: ' + str(child.children))
-                    
                     if child.children:
                         for grandchild in child.children:
                             grandchild.parent = child.parent
@@ -101,10 +96,7 @@ class Node:
                     temp_p = child.parent.parent
                     child.parent.new_p(child)
                     child.new_p(temp_p)
-                    
-                    #print('After:')
-                    #print('child: '+child.val+' parent: ' + child.parent.val+ ' grandparent: ' + child.parent.parent.val)
-                    #print('grandchildren: ' + str(child.children))
+
         return self
 
     def compress(self):
@@ -120,8 +112,7 @@ class Node:
             if child.children:
                 child.compress()
 
-    # This is inefficient for large scale data mining but it works and took me forever to figure out
-    def mine(self, SFD, min_sup, min_all_conf):
+    def mine(self, SFD, min_sup):
         d = {}
         for key in SFD:
             if SFD[key] >= min_sup:
@@ -153,8 +144,8 @@ class Node:
             string = self.parent.check_p() + string
         return string
 
-    def patterns(self, SFD, min_sup, min_all_conf):
-        d = self.mine(SFD, min_sup, min_all_conf)
+    def patterns(self, SFD, min_sup):
+        d = self.mine(SFD, min_sup)
         temp = {}
         final = {}
         
@@ -195,7 +186,6 @@ class Node:
         return final
         
 class Tree:
-    # root is always null
     def __init__(self):
         self.root = Node(None)
         self.SFD = {}
@@ -206,13 +196,11 @@ class Tree:
 
     def insert(self, item_list):
         if not item_list:
-            return "Finished/Empty List"
+            return None
         
         val = item_list[0]
         new_node = Node(val)
         
-        # if root node has no children then add it to the root node's kids
-        # this if/else statement only handles the tree root's children
         if not self.root.children:
             self.root.children.append(new_node)
             new_node.seen_again()
@@ -229,7 +217,6 @@ class Tree:
                 self.root.children.append(new_node)
                 new_node.seen_again()
 
-        # if true, gets to the next item in list and adds it under the previous item
         if len(item_list) > 1:
             item_list.pop(0)
             new_node.insert(item_list,new_node)
@@ -237,14 +224,10 @@ class Tree:
 
     def __str__(self):
         return str(self.traverse())
-
-    # Creates a dict "list" in frequency-descending order (SFD)
+    
     def sfd(self):
         flat = self.flatten()
         temp = self.sfd_merge(flat)
-
-# Uncomment the line below for it to be a list sorted in frequency-descending order. Will break other functions though.
-        #temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
         return temp
 
     def sfd_merge(self, lst):
@@ -256,11 +239,9 @@ class Tree:
                 temp[i.val] = temp[i.val] + i.count
         return temp
 
-    # Restructures tree using SFD list.
     def restruct(self):
         return self.root.restruct(self.SFD)
 
-    # After restructuring, all similar nodes should have the same parent. This allows for easy compression
     def compress(self):
         return self.root.compress()
 
@@ -270,16 +251,14 @@ class Tree:
         self.compress()
         return self
         
-    # Gives a flattened dfs list 
     def flatten(self):
         return self.root.flatten()
 
-    # Does a dfs iteratively on the tree and returns it
     def traverse(self):
         return self.root.traverse()
 
-    def mine(self, min_sup, min_all_conf):
-        return self.root.patterns(self.SFD, min_sup, min_all_conf)
+    def patterns(self, min_sup):
+        return self.root.patterns(self.SFD, min_sup)
     
 if __name__ == "__main__":
     t = Tree()
@@ -303,4 +282,4 @@ if __name__ == "__main__":
     print("\nAfter restructuring-compression:")
     print(t)
     print("\nAssociated Sensor Patterns:")
-    print(t.mine(3,0))
+    print(t.patterns(3))
