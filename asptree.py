@@ -1,3 +1,6 @@
+import itertools
+import sys
+
 class Node:
     def __init__(self, val):
         self.val = val
@@ -117,15 +120,15 @@ class Node:
             if child.children:
                 child.compress()
 
-    # This is inefficient for the large scale data mining but it works and took me forever to figure out
+    # This is inefficient for large scale data mining but it works and took me forever to figure out
     def mine(self, SFD, min_sup, min_all_conf):
-        lst = []
+        d = {}
         for key in SFD:
             if SFD[key] >= min_sup:
                 temp = self.find(key)
                 if temp:
-                    lst.append(temp)            
-        return lst
+                    d.update(temp)            
+        return d
 
     def find(self, key):
         temp = {}
@@ -138,8 +141,7 @@ class Node:
                     if key in temp2:
                         temp[key] += (temp2[key])            
             if child.val == key and child.parent != None:
-                lst = [child.check_p() + ":" + str(child.count)]
-                temp[key].append(lst)
+                temp[key].append(child.check_p() + str(child.count))
             if temp[key] == []:
                 del temp[key]
         return temp
@@ -147,10 +149,51 @@ class Node:
     def check_p(self):
         string = ''
         if self.parent != None:
-            string = self.parent.val
+            string = self.parent.val + ' '
             string = self.parent.check_p() + string
         return string
-                
+
+    def patterns(self, SFD, min_sup, min_all_conf):
+        d = self.mine(SFD, min_sup, min_all_conf)
+        temp = {}
+        final = {}
+        
+        for key in d.keys():
+            temp[key] = {}
+            
+            for item in d[key]:
+                split = item.split()
+
+                for x in split[:-1]:
+                    if x not in temp[key]:
+                        temp[key][x] = int(split[-1])
+                    else:
+                        temp[key][x] += int(split[-1])
+
+        for key in temp.keys():
+            lst = []
+            for innerkey in sorted(temp[key].keys()):
+                if temp[key][innerkey] >= min_sup:
+                        lst.append(innerkey)
+
+            for item in range(0, len(lst)+1):
+                for subset in itertools.combinations(lst, item):
+                    count = sys.maxsize
+                    
+                    if key not in final:
+                        final[key] = []
+                    else:
+                        s = ' '.join(subset)
+                        split = s.split()
+                        for sensor in split:
+                            if temp[key][sensor] <= count:
+                                count = temp[key][sensor]
+                        final[key] += ["".join(subset) + key + ':' + str(count)]
+
+            if not final[key]:
+                del final[key]
+        return final
+        
 class Tree:
     # root is always null
     def __init__(self):
@@ -201,7 +244,7 @@ class Tree:
         temp = self.sfd_merge(flat)
 
 # Uncomment the line below for it to be a list sorted in frequency-descending order. Will break other functions though.
-        # temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
+        #temp = sorted(temp.items(), key=lambda x: (-x[1],x[0]))
         return temp
 
     def sfd_merge(self, lst):
@@ -236,7 +279,7 @@ class Tree:
         return self.root.traverse()
 
     def mine(self, min_sup, min_all_conf):
-        return self.root.mine(self.SFD, min_sup, min_all_conf)
+        return self.root.patterns(self.SFD, min_sup, min_all_conf)
     
 if __name__ == "__main__":
     t = Tree()
@@ -259,5 +302,5 @@ if __name__ == "__main__":
     t.phase2()
     print("\nAfter restructuring-compression:")
     print(t)
-    print("\nConditional Pattern Base:")
+    print("\nAssociated Sensor Patterns:")
     print(t.mine(3,0))
